@@ -34,3 +34,11 @@ export type CreateOrderReturnDTO ={
     orderId:number;
     items:{ productId: number;qty:number}[]
 }
+
+export type UpdateOrderStatusDTO = {
+  status: 'PENDING' | 'SUCCESS';
+};
+
+export type UpdateReturnStatusDTO = {
+  status: 'PENDING' | 'PICKED' | 'REFUND';
+};

@@ -1,15 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Roles } from 'src/decorators/roles.decorator';
-import type { CreateOrderDTO, CreateOrderResponseDTO, CreateOrderReturnDTO, OrderOverViewResponseDTO, OrderResponseDTO } from './types/order.dto';
+import type { CreateOrderDTO, CreateOrderResponseDTO, CreateOrderReturnDTO, OrderOverViewResponseDTO, OrderResponseDTO, UpdateOrderStatusDTO, UpdateReturnStatusDTO } from './types/order.dto';
 import { ZodValidationPipe } from 'src/pips/zod.validation.pipe';
-import { createOrderDTOValidationSchema, createReturnDTOValidationSchema } from './util/order.validation.schema';
+import { createOrderDTOValidationSchema, createReturnDTOValidationSchema, updateOrderStatusValidationSchema, updateReturnStatusValidationSchema } from './util/order.validation.schema';
 import { ProductResponseDto } from '../product/types/product.dto';
 import { paginationSchema } from '../utils/api.util';
 import type{ PaginationQueryType, PaginationResult } from 'src/types/util.types';
 
 @Controller('order')
-@Roles(['CUSTOMER'])
+@Roles(['CUSTOMER','ADMIN'])
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
   @Post()
@@ -30,18 +30,19 @@ export class OrderController {
     return this.orderService.findOne(id,BigInt(req.user!.id));
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-  //   return this.orderService.update(+id, updateOrderDto);
-  // }
+  // must edit to pass the orderId
+@Roles(['ADMIN'])
+@Patch(':id/status')
+async updateStatus(
+  @Param('id') id: number,
+  @Req() req:Express.Request,
+  @Body(new ZodValidationPipe(updateOrderStatusValidationSchema))
+  updateOrderStatusDto: UpdateOrderStatusDTO,
+) {
+  return this.orderService.updateStatus(BigInt(req.user!.id),BigInt(id),updateOrderStatusDto.status);
+}
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
-  }
-
-  //return end points
-
+  /*---------------------------------------------Returned --------------------------*/
   // create return
   @Post('return')
   createReturn(
@@ -51,4 +52,14 @@ export class OrderController {
   {
        return this.orderService.createReturn(createOrderReturnDTO,BigInt(req.user!.id))
   } 
+
+@Roles(['ADMIN'])
+@Patch('return/:id/status')
+async updateReturnStatus(
+  @Param('id') id: number,
+  @Body(new ZodValidationPipe(updateReturnStatusValidationSchema))
+  dto: UpdateReturnStatusDTO,
+): Promise<OrderResponseDTO> {
+  return this.orderService.updateReturnStatus(BigInt(id), dto.status);
+}
 }

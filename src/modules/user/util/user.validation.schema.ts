@@ -6,7 +6,7 @@ export const UserValidationSchema = z.object({
     name: z.string().min(2).max(100),
     email: z.email(),
     password: z.string(),
-    role: z.enum(['MERCHANT','CUSTOMER']),
+    role: z.enum(['MERCHANT','CUSTOMER','ADMIN']),
 }) satisfies ZodType <Omit<User ,'id' | 'createdAt' |'isDeleted' >>;
 
 export const updatedUserValidationSchema = 

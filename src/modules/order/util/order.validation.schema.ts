@@ -17,3 +17,11 @@ export const createReturnDTOValidationSchema = z.object({
       })
     ),
 }) satisfies ZodType<CreateOrderReturnDTO>
+
+export const updateOrderStatusValidationSchema = z.object({
+  status: z.enum(['PENDING', 'SUCCESS']),
+});
+
+export const updateReturnStatusValidationSchema = z.object({
+  status: z.enum(['PENDING', 'PICKED', 'REFUND']),
+});

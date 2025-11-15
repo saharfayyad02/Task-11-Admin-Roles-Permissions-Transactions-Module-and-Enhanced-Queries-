@@ -4,8 +4,14 @@ import { PrismaClient } from "generated/prisma";
 import { AdminUser, generateUserSeed } from "./user.seed";
 import { generateProductSeed } from "./product.seed";
 import { faker } from "@faker-js/faker";
+import * as argon from 'argon2';
 
 const prisma = new PrismaClient();
+
+const ADMIN_NAME  = process.env.ADMIN_NAME  ?? 'Super Admin';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@example.com';
+const ADMIN_PASS  = process.env.ADMIN_PASS  ?? 'ChangeMe_123!';
+
 async function main() {
   console.log("Start seeding ..."); 
     // delete all records
@@ -22,7 +28,7 @@ async function main() {
             role: 'MERCHANT',
         },
     });
-
+    
     const productSeeds = faker.helpers.multiple(() => generateProductSeed(merchantUser[0].id)
     , { count: 30 });   
 
@@ -34,6 +40,28 @@ async function main() {
             data: productSeed,
         });
     }
+
+    const existing = await prisma.user.findUnique({ where: { email: ADMIN_EMAIL } });
+   if (!existing) {
+    const password = await argon.hash(ADMIN_PASS);
+    await prisma.user.create({
+      data: {
+        name: ADMIN_NAME,
+        email: ADMIN_EMAIL,
+        password,
+        role: 'ADMIN', 
+      },
+    });
+    console.log(`✅ Admin created: ${ADMIN_EMAIL}`);
+  } else if (existing.role !== 'ADMIN') {
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: { role: 'ADMIN' },
+    });
+    console.log(`✅ Promoted existing user to ADMIN: ${ADMIN_EMAIL}`);
+  } else {
+    console.log('ℹ️ Admin already exists, no changes.');
+  }
 
     console.log('Created users and products.');
     await prisma.$disconnect();
