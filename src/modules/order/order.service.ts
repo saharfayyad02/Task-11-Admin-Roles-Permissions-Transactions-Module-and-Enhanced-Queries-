@@ -134,47 +134,41 @@ async findAll(userId: bigint, query: PaginationQueryType) {
     const orders = await prisma.order.findMany({
       ...removeFields(pagination, ['page']),
       where: { userId },
-      orderBy: { id: 'desc' }, 
-      select: {      
+      orderBy: { id: 'desc' },
+      select: {
         id: true,
         orderStatus: true,
         createdAt: true,
-        orderProducts: {
-          select: {
-            productId: true,
-            totalQty: true,
-            pricePerItem: true,
-          },
-        },
-        transactions: {
-          select: {
-            id: true,
-            amount: true,
-            type: true,
-            createdAt: true,
-          },
-        },
-        orderReturns: {
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-          },
-        },
+        orderProducts: { select: { totalQty: true } },
+        transactions: { select: { amount: true, type: true } },
       },
     });
 
-    const count = await prisma.order.count({ where: { userId } });
+    const summarized = orders.map((order) => {
+      const totalAmount = order.transactions.reduce(
+        (sum, t) => sum + Number(t.amount),
+        0,
+      );
+      const totalItems = order.orderProducts.reduce(
+        (sum, p) => sum + p.totalQty,
+        0,
+      );
+      const latestTransactionType =
+        order.transactions.length > 0
+          ? order.transactions[order.transactions.length - 1].type
+          : null;
 
-    return {
-  data: orders as unknown as OrderOverViewResponseDTO[],
-  ...this.prismaService.formatPaginationResult({
-    page: pagination.page,
-    count,
-    limit: pagination.take,
-  }),
-};
+      return {
+        id: order.id,
+        orderStatus: order.orderStatus,
+        createdAt: order.createdAt,
+        totalAmount,
+        totalItems,
+        latestTransactionType,
+      };
+    });
 
+    return summarized; // ✅ no meta, only the array
   });
 }
 

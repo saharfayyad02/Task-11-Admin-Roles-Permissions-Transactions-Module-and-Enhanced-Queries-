@@ -29,27 +29,49 @@ export class UserService {
     });
   }
 
-  findAll(query:PaginationQueryType)
-  :Promise<PaginationResult<Omit<User,'password'>>> {
-    return this.prismaService.$transaction(async (prisma) =>{
-      const pagination = this.prismaService.handleQueryPagination(query);    
-      const users = await prisma.user.findMany({
-            ...removeFields(pagination,['page']),
-            omit: {
-              password: true, 
-            }
-          });
-          const totalUsers = await prisma.user.count();
-          return {
-          data: users,
-          ...this.prismaService.formatPaginationResult({
-            page: pagination.page,
-            count: totalUsers,
-            limit: pagination.take, 
-          })
-        } 
-    })
-  }
+  // findAll(query:PaginationQueryType)
+  // :Promise<PaginationResult<Omit<User,'password'>>> {
+  //   return this.prismaService.$transaction(async (prisma) =>{
+  //     const pagination = this.prismaService.handleQueryPagination(query);    
+  //     const users = await prisma.user.findMany({
+  //           ...removeFields(pagination,['page']),
+  //           omit: {
+  //             password: true, 
+  //           }
+  //         });
+  //         const totalUsers = await prisma.user.count();
+  //         return {
+  //         data: users,
+  //         ...this.prismaService.formatPaginationResult({
+  //           page: pagination.page,
+  //           count: totalUsers,
+  //           limit: pagination.take, 
+  //         })
+  //       } 
+  //   })
+  // }
+
+  async findAll(query: PaginationQueryType)
+  : Promise<Omit<User, 'password'>[]> {
+  return this.prismaService.$transaction(async (prisma) => {
+    const pagination = this.prismaService.handleQueryPagination(query);
+
+    const users = await prisma.user.findMany({
+      ...removeFields(pagination, ['page']),
+      orderBy: { id: 'desc' }, // ✅ newest first
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        isDeleted: true,
+      },
+    });
+    return users;
+  });
+}
+
 
 
   findOne(id: bigint) {

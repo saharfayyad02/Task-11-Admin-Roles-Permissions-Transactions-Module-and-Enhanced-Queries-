@@ -34,14 +34,14 @@ export class ProductController {
 }
 
 
-  @Roles(['CUSTOMER','MERCHANT'])
+  @Roles(['CUSTOMER','MERCHANT','ADMIN'])
   @Get()
   findAll(@Query(new ZodValidationPipe(productSchema)) query: ProductQuery) {
     console.log('entered')
     return this.productService.findAll(query);
   }
 
-  @Roles(['CUSTOMER','MERCHANT'])
+  @Roles(['CUSTOMER','MERCHANT','ADMIN'])
   @Get(':id')
   findOne(@Param('id',ParseIntPipe) id: number) {
     return this.productService.findOne(id);

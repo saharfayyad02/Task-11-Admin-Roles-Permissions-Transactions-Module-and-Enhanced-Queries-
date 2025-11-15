@@ -5,7 +5,6 @@ export type PaginationQueryType = {
     limit?: number;
 }
 
-
 export type PaginationResponseMeta = {
     meta:
     {

@@ -34,29 +34,56 @@ export class ProductService {
     });
   }
 
-  findAll(query: ProductQuery) {
-    return this.prismaService.$transaction(async (prisma) => {
-      const whereClause: Prisma.ProductWhereInput = query.name
-        ? { name: { contains: query.name } }
-        : {};
-      const pagination = this.prismaService.handleQueryPagination(query);
-      const proucts = await prisma.product.findMany({
-        ...removeFields(pagination, ['page']),
-        where: whereClause,
-      });
-      const count = await prisma.product.count({
-        where: whereClause,
-      });
-      return {
-        data: proucts,
-        ...this.prismaService.formatPaginationResult({
-          page: pagination.page,
-          count,
-          limit: pagination.take,
-        }),
-      };
+  // findAll(query: ProductQuery) {
+  //   return this.prismaService.$transaction(async (prisma) => {
+  //     const whereClause: Prisma.ProductWhereInput = query.name
+  //       ? { name: { contains: query.name } }
+  //       : {};
+  //     const pagination = this.prismaService.handleQueryPagination(query);
+  //     const proucts = await prisma.product.findMany({
+  //       ...removeFields(pagination, ['page']),
+  //       where: whereClause,
+  //     });
+  //     const count = await prisma.product.count({
+  //       where: whereClause,
+  //     });
+  //     return {
+  //       data: proucts,
+  //       ...this.prismaService.formatPaginationResult({
+  //         page: pagination.page,
+  //         count,
+  //         limit: pagination.take,
+  //       }),
+  //     };
+  //   });
+  // }
+
+  async findAll(query: ProductQuery) {
+  return this.prismaService.$transaction(async (prisma) => {
+    const whereClause: Prisma.ProductWhereInput = query.name
+      ? { name: { contains: query.name } }
+      : {};
+
+    const pagination = this.prismaService.handleQueryPagination(query);
+
+    const products = await prisma.product.findMany({
+      ...removeFields(pagination, ['page']),
+      where: whereClause,
+      orderBy: { id: 'desc' }, // ✅ newest first
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        description: true,
+        merchantId: true
+      },
     });
-  }
+
+    // ✅ Return only important fields — no meta
+    return products;
+  });
+}
+
 
   findOne(id: number) {
     return this.prismaService.product.findUnique({

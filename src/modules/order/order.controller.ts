@@ -18,13 +18,19 @@ export class OrderController {
     return this.orderService.create(createOrderDto,BigInt(req.user!.id));
   }
 
-  @Get()
+  // @Get()
+  // findAll(@Req() req:Express.Request,
+  //         @Query(new ZodValidationPipe(paginationSchema)) query:
+  //         PaginationQueryType): Promise<PaginationResult <OrderOverViewResponseDTO>> {
+  //     return this.orderService.findAll(BigInt(req.user!.id),query);
+  // }
+
+   @Get()
   findAll(@Req() req:Express.Request,
           @Query(new ZodValidationPipe(paginationSchema)) query:
-          PaginationQueryType): Promise<PaginationResult <OrderOverViewResponseDTO>> {
+          PaginationQueryType){
       return this.orderService.findAll(BigInt(req.user!.id),query);
   }
-
    @Get(':id')
   findOne(@Param('id') id: number, @Req() req:Express.Request): Promise<OrderResponseDTO> {
     return this.orderService.findOne(id,BigInt(req.user!.id));
