@@ -13,6 +13,7 @@ import { RoleGuard } from './modules/guards/roles.guard';
 import { ProductModule } from './modules/product/product.module';
 import { FileModule } from './modules/file/file.module';
 import { OrderModule } from './modules/order/order.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { OrderModule } from './modules/order/order.module';
     ProductModule,
     FileModule,
     OrderModule,
+    TransactionsModule,
   ],
 
   controllers: [AppController],   
